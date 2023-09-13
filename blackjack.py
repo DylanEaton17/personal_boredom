@@ -183,17 +183,15 @@ def main():
 
                 if is_game_over == "Bust":
                     print("You went over 21! Bust! You Lose!")
-                    response = 1
-                    break
+                    game_running=0
                 elif is_game_over == "Blackjack":
                     print("You got a Blackjack! You Win! Yay!")
-                    response=1
-                    break
+                    game_running=0
 
             elif decisions_decisions == "STAND":
                 if (ace > 0) & (current_hand_int + 10 < 21):
                     current_hand_int = current_hand_int + 10
-                print("You decided to stand at a value of", current_hand_int)
+                print("You decided to stand at a value of", current_hand_int, end="\n \n")
                 print("The dealer's second card is a", dealer_card_two_value, dealer_card_two_suit)
                 print_dealer_hand_value(dealer_current_hand_int, dealer_ace)
                 dealer_playing = 0
