@@ -2,7 +2,8 @@ import random
 import array
 
 def shuffle_cards():
-    deck = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52]
+    deck_range=range(1,53)
+    deck=list(deck_range)
     random.shuffle(deck)
     return deck
 
@@ -56,17 +57,25 @@ def check_value(card):
         return "King"
 
 def print_hand_value(hand_value, ace):
-    if ace == 0:
-        print("Your cards have a value of", (hand_value), end="\n \n")
-    elif (ace == 1) & ((hand_value + 10) < 21):
+    if (ace > 0) & ((hand_value + 10) < 21):
         print("Your cards have a value of ", (hand_value), ", or ", (hand_value + 10), " since you have an ace", sep="", end="\n \n")
-    elif (ace == 2) & ((hand_value + 20) < 21):
-        print("Your cards have a value of ", (hand_value), ", ", (hand_value + 10), ", or, ", (hand_value + 20), " since you have two aces", sep="", end="\n \n")
+    elif (ace > 0) & ((hand_value + 10) == 21):
+        print("Your cards have a value of", (hand_value + 10))
     else:
         print("Your cards have a value of", (hand_value), end="\n \n")
 
-def is_value_21_or_over(value):
+def print_dealer_hand_value(dealer_hand_value, dealer_ace):
+    if (dealer_ace > 0) & ((dealer_hand_value + 10) < 21):
+        print("The dealer's cards have a value of ", (dealer_hand_value), ", or ", (dealer_hand_value + 10), " since they have an ace", sep="", end="\n \n")
+    elif (dealer_ace > 0) & ((dealer_hand_value + 10) == 21):
+        print("The dealer's cards have a value of", (dealer_hand_value + 10))
+    else:
+        print("The dealer's cards have a value of", (dealer_hand_value), end="\n \n")
+
+def is_value_21_or_over(value, ace):
     if value == 21:
+        return "Blackjack"
+    elif (ace>0) & (value+10==21):
         return "Blackjack"
     elif value > 21:
         return "Bust"
@@ -79,25 +88,47 @@ def main():
     game_running = 1
     while game_running == 1:
         deck_of_cards = shuffle_cards()
-        """
-            print(deck_of_cards)
-            x=0
-            for x in range (0,52):
-                card = deck_of_cards[x]
-                card_value = check_value(card)
-                card_suit = check_suit(card)
-                print(card_value, card_suit)
-            """
-
         card_one = deck_of_cards.pop(0)
         card_one_value = check_value(card_one)
         card_one_suit = check_suit(card_one)
         print("Your first card is a", card_one_value, card_one_suit)
 
+        dealer_card_one = deck_of_cards.pop(0)
+        dealer_card_one_value = check_value(dealer_card_one)
+        dealer_card_one_suit = check_suit(dealer_card_one)
+        print("The dealer's first card is a", dealer_card_one_value, dealer_card_one_suit, end="\n \n")
+
         card_two = deck_of_cards.pop(0)
         card_two_value = check_value(card_two)
         card_two_suit = check_suit(card_two)
         print("Your second card is a", card_two_value, card_two_suit)
+
+        dealer_card_two = deck_of_cards.pop(0)
+        dealer_card_two_value = check_value(dealer_card_two)
+        dealer_card_two_suit = check_suit(dealer_card_two)
+        
+        dealer_ace = 0
+        card_int_check = card_int(dealer_card_one, dealer_ace)
+        dealer_card_one_int = card_int_check[0]
+        dealer_ace = card_int_check[1]
+
+        card_int_check = card_int(dealer_card_two, dealer_ace)
+        dealer_card_two_int = card_int_check[0]
+        dealer_ace = card_int_check[1]
+
+        dealer_current_hand_int = dealer_card_one_int + dealer_card_two_int
+        is_game_over_dealer = is_value_21_or_over(dealer_current_hand_int, dealer_ace)
+        if is_game_over_dealer == "Blackjack":
+            print("The dealer's second card is", dealer_card_two_value, dealer_card_two_suit)
+            print("The dealer's cards have a value of 21 ;)")
+        else:
+            print("The dealer's second card is face down", end = "\n \n")
+        
+        # prints dealer's starting value
+        if dealer_card_one_int == 1:
+            print("As of now, the dealer's cards have a known value of 1 or 11, since they have an ace")
+        else:    
+            print("As of now, the dealer's cards have a known value of", dealer_card_one_int)
 
         ace = 0
 
@@ -113,18 +144,27 @@ def main():
 
         print_hand_value(current_hand_int, ace)
 
-        is_game_over = is_value_21_or_over(current_hand_int)
+        is_game_over = is_value_21_or_over(current_hand_int, ace)
         if is_game_over == "Bust":
             print("You went over 21! Bust! You Lose!")
-            break
+            game_running=0
+        elif (is_game_over == "Blackjack") & (is_game_over_dealer == "Blackjack"):
+            print("You and the dealer both got a Blackjack. How boring.")
+            game_running=0
         elif is_game_over == "Blackjack":
             print("You got a Blackjack! You Win! Yay!")
-            break
+            game_running=0
+        elif is_game_over_dealer == "Blackjack":
+            print("Damn the dealer just fucking destroyed you. You lost kiddo. Get over it.")
+            game_running=0
 
+        # Gameplay loop (Hitting repeatedly, then dealer hitting repeatedly)
         response = 0
         while response == 0:
-            decisions_decisions = input ("Would you like to hit or stay? ")
+            decisions_decisions = input ("Would you like to hit or stand? ")
+            print("") # Prints a line for spacing purposes
             decisions_decisions = decisions_decisions.upper()
+
             if decisions_decisions == "HIT":
                 additional_card = deck_of_cards.pop(0)
                 additional_card_value = check_value(additional_card)
@@ -139,24 +179,66 @@ def main():
 
                 print_hand_value(current_hand_int, ace)
 
-                is_game_over = is_value_21_or_over(current_hand_int)
+                is_game_over = is_value_21_or_over(current_hand_int, ace)
+
                 if is_game_over == "Bust":
                     print("You went over 21! Bust! You Lose!")
-                    game_running=0
+                    response = 1
                     break
                 elif is_game_over == "Blackjack":
                     print("You got a Blackjack! You Win! Yay!")
-                    game_running=0
+                    response=1
                     break
 
-            elif decisions_decisions == "STAY":
-                game_running = 0
-                print("Well there's no dealer here at the moment so ig we're done here")
-                break
+            elif decisions_decisions == "STAND":
+                if (ace > 0) & (current_hand_int + 10 < 21):
+                    current_hand_int = current_hand_int + 10
+                print("You decided to stand at a value of", current_hand_int)
+                print("The dealer's second card is a", dealer_card_two_value, dealer_card_two_suit)
+                print_dealer_hand_value(dealer_current_hand_int, dealer_ace)
+                dealer_playing = 0
+                while dealer_playing == 0:
+                    if (21 >= dealer_current_hand_int > current_hand_int):
+                        print("The dealer wins! Too bad! So sad!")
+                        dealer_playing=1
+                        response=1
+                        game_running=0
+                    elif ((dealer_ace > 0) & (21 >= (dealer_current_hand_int + 10) > current_hand_int)):
+                        print("The dealer wins! Too bad! So sad!")
+                        dealer_playing=1
+                        response=1
+                        game_running=0
+                    elif (dealer_current_hand_int > 21):
+                        print("The dealer went over 21! Bust! You Win!")
+                        dealer_playing=1
+                        response=1
+                        game_running=0
+                    elif ((dealer_current_hand_int >= 17)):
+                        print("The dealer stays at ", dealer_current_hand_int, " and you win!", sep="")
+                        dealer_playing=1
+                        response=1
+                        game_running=0
+                    elif (dealer_ace > 0 & (21 >= (dealer_current_hand_int + 10) >= 17)):
+                        print("The dealer stays at ", (dealer_current_hand_int + 10), " and you win!", sep="")
+                        dealer_playing=1
+                        response=1
+                        game_running=0
+                    else:
+                        print("The dealer's cards are a value under 17 so they hit")
+                        additional_dealer_card = deck_of_cards.pop(0)
+                        additional_dealer_card_value = check_value(additional_dealer_card)
+                        additional_dealer_card_suit = check_suit(additional_dealer_card)
+                        print("The dealer's next card is a", additional_dealer_card_value, additional_dealer_card_suit)
+
+                        dealer_card_int_check = card_int(additional_dealer_card, dealer_ace)
+                        additional_dealer_card_int = dealer_card_int_check[0]
+                        dealer_ace = dealer_card_int_check[1]
+                        dealer_current_hand_int = dealer_current_hand_int + additional_dealer_card_int
+                        print_dealer_hand_value(dealer_current_hand_int, dealer_ace)
 
             else:
                 print("I'm sorry, I didn't get that. Could you speak up?")
 
-        if current_hand_int >= 21:
-            break
+    print("")
+
 main()
