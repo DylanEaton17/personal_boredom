@@ -137,7 +137,7 @@ def blackjack_main():
 
         print("")
 
-        dealer_card_one = deck_of_cards.pop(0)
+        dealer_card_one = 1
         dealer_card_one_value = check_value(dealer_card_one)
         dealer_card_one_suit = check_suit(dealer_card_one)
 
@@ -158,7 +158,7 @@ def blackjack_main():
             
         print("")
 
-        dealer_card_two = deck_of_cards.pop(0)
+        dealer_card_two = 1
         dealer_card_two_value = check_value(dealer_card_two)
         dealer_card_two_suit = check_suit(dealer_card_two)
         
@@ -190,10 +190,8 @@ def blackjack_main():
         # prints dealer's starting value
         if is_game_over_dealer != "Blackjack":
             if dealer_card_one_int == 1:
-                print("")
                 fancy_type(red_text("As of now, the dealer's cards have a known value of " + bright_text("1") + " or " + bright_text("11") + ", since they have an ace"))
             else:    
-                print("")
                 fancy_type(red_text("As of now, the dealer's cards have a known value of " + bright_text(str(dealer_card_one_int))))
 
         print("")
@@ -347,7 +345,7 @@ def blackjack_main():
 
                         print("")
 
-                        additional_dealer_card = deck_of_cards.pop(0)
+                        additional_dealer_card = 2
                         additional_dealer_card_value = check_value(additional_dealer_card)
                         additional_dealer_card_suit = check_suit(additional_dealer_card)
                         if ((additional_dealer_card_value == "Ace") or (additional_dealer_card_value == "Eight")):
