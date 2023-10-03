@@ -3,6 +3,7 @@ from colorama import Fore, Back, Style
 import time
 import random
 import sys
+import story
 
 def fancy_type(*words):
     str = ''
@@ -16,6 +17,23 @@ def fancy_type(*words):
         ]))
         sys.stdout.write(char)
         sys.stdout.flush()
+
+def fancy_type_slow(*words):
+    str = ''
+    for item in words:
+        str = str + item
+    # str += "\n"
+    for char in str:
+        time.sleep(random.choice([
+        0.06, 0.05, 0.03, 0.03,
+        0.05, 0.03, 0.04, 0.05, 0.06, 0.04
+        ]))
+        sys.stdout.write(char)
+        sys.stdout.flush()
+        if (char == ".") or (char == "!"):
+            time.sleep(0.7)
+        if char == ",":
+            time.sleep(0.4)
 
 def red_text(text):
     return (Fore.RED + text + Fore.WHITE)
@@ -119,16 +137,53 @@ def is_value_21_or_over(value, ace):
         return "Bust"
     else:
         return
+    
+def choose_bet(balance):
+    print("")
+    currently_betting = 1
+    angry_dealer=0
+    while currently_betting != 0:
+        bet = None
+        while bet is None:
+            fancy_type("How much would you like to bet? ")
+            try:
+                bet = int(input(""))
+            except ValueError:
+                print("")
+                fancy_type(red_text("The dealer looks at you confused. Perhaps he didn't hear you."))
+                print("\n")
 
-def blackjack_main():
+        print("")
+        if(int(bet)<=balance) and (int(bet)>0):
+            balance = balance-bet
+            return int(bet), balance
+        elif((int(bet)==0) and (angry_dealer==0)):
+            fancy_type_slow(red_text("The dealer looks at you with an aggressive eye. Maybe try betting some cash!"))
+            print("\n")
+            angry_dealer += 1
+        elif((int(bet)==0) and (angry_dealer==1)):
+            fancy_type_slow(red_text("The dealer is infuriated. You've insulted him. You should bet some cash."))
+            print("\n")
+            angry_dealer += 1
+        elif((int(bet)==0) and (angry_dealer==2)):
+            fancy_type_slow(red_text("The dealer gets up from his chair and charges his relover. Bet some cash. You'll regret it if you don't."))
+            print("\n")
+            angry_dealer += 1
+        elif((int(bet)==0) and (angry_dealer==3)):
+            fancy_type_slow(red_text("The dealer fires three shots into your chest. You bleed out, and as you fade from reality, you see the dealer reach into your pockets, and take every last penny from your lifeless body."))
+            return "dead"
+        else:
+            fancy_type(red_text("The dealer looks at you confused. Perhaps he didn't hear you."))
+            print("\n")
+
+
+def blackjack_main(bet, balance):
     game_running = 1
     while game_running == 1:
         deck_of_cards = shuffle_cards()
         card_one = deck_of_cards.pop(0)
         card_one_value = check_value(card_one)
         card_one_suit = check_suit(card_one)
-
-        print("")
 
         if ((card_one_value == "Ace") or (card_one_value == "Eight")):
             fancy_type("Your first card is an ", magenta_text(bright_text(card_one_value + " " + card_one_suit)))
@@ -218,22 +273,41 @@ def blackjack_main():
         if is_game_over == "Bust":
             print("\n")
             fancy_type(red_text(bright_text("You went over 21! Bust! You Lose!")))
-            game_running=0
+            print("")
+            fancy_type(red_text(bright_text("You lost your bet of " + green_text("$" + str(bet)))))
+            print("\n")
+            fancy_type(red_text(bright_text("Your new balance is " + green_text("$" + str(balance)))))
+            print("")
+            return balance
         elif (is_game_over == "Blackjack") & (is_game_over_dealer == "Blackjack"):
             print("\n")
             fancy_type(cyan_text(bright_text("You and the dealer both got a Blackjack. How boring.")))
-            game_running=0
-            response=1
+            print("")
+            fancy_type(cyan_text(bright_text("You win back your bet of " + green_text("$" + str(bet)))))
+            print("\n")
+            fancy_type(cyan_text(bright_text("Your balance has returned to " + green_text("$" + str(balance)))))
+            print("")
+            balance += bet
+            return balance
         elif is_game_over == "Blackjack":
             print("\n")
             fancy_type(yellow_text(bright_text("You got a Blackjack! You Win! Huzzah! Bon Voyage!")))
-            game_running=0
-            response=1
+            print("")
+            fancy_type(yellow_text(bright_text("With an innital bet of " + green_text("$" + str(bet)) + yellow_text(", you've tripled it!"))))
+            print("\n")
+            fancy_type(yellow_text(bright_text("Your new balance is " + green_text("$" + str(balance) + " + $" + str(bet*3) + " = $" + str(balance+(3*bet))))))
+            print("")
+            balance += (bet*3)
+            return balance
         elif is_game_over_dealer == "Blackjack":
             print("")
-            fancy_type(red_text("Damn the dealer just fucking destroyed you. You lost kiddo. Get over it."))
-            game_running=0
-            response=1
+            fancy_type(red_text(bright_text("Damn the dealer just fucking destroyed you. You lost kiddo. Get over it.")))
+            print("")
+            fancy_type(red_text(bright_text("You lost your bet of " + green_text("$" + str(bet)))))
+            print("\n")
+            fancy_type(red_text(bright_text("Your new balance is " + green_text("$" + str(balance)))))
+            print("")
+            return balance
 
         # Gameplay loop (Hitting repeatedly, then dealer hitting repeatedly)
         while response == 0:
@@ -246,8 +320,11 @@ def blackjack_main():
                 additional_card = deck_of_cards.pop(0)
                 additional_card_value = check_value(additional_card)
                 additional_card_suit = check_suit(additional_card)
-                fancy_type("Your next card is a " + magenta_text(bright_text( additional_card_value + " " + additional_card_suit)))
-
+                if (additional_card_value == "Ace") or (additional_card_value == "Eight"):
+                  fancy_type("Your next card is an " + magenta_text(bright_text( additional_card_value + " " + additional_card_suit)))
+                else:
+                  fancy_type("Your next card is a " + magenta_text(bright_text( additional_card_value + " " + additional_card_suit)))
+                  
                 print("")
 
                 card_int_check = card_int(additional_card, ace)
@@ -261,13 +338,22 @@ def blackjack_main():
                 if is_game_over == "Bust":
                     print("")
                     fancy_type(red_text(bright_text("You went over 21! Bust! You Lose!")))
-                    game_running=0
-                    response = 1
+                    print("")
+                    fancy_type(red_text(bright_text("You lost your bet of " + green_text("$" + str(bet)))))
+                    print("\n")
+                    fancy_type(red_text(bright_text("Your new balance is " + green_text("$" + str(balance)))))
+                    print("")
+                    return balance
                 elif is_game_over == "Blackjack":
                     print("")
                     fancy_type(yellow_text(bright_text("You got a Blackjack! You Win! Yay!")))
-                    response = 1
-                    game_running=0
+                    print("")
+                    fancy_type(yellow_text(bright_text("With an innital bet of " + green_text("$" + str(bet)) + yellow_text(", you've tripled it!"))))
+                    print("\n")
+                    fancy_type(yellow_text(bright_text("Your new balance is " + green_text("$" + str(balance) + " + $" + str(bet*3) + " = $" + str(balance+(3*bet))))))
+                    print("")
+                    balance += (bet*3)
+                    return balance
 
             elif (decisions_decisions == "STAND") or (decisions_decisions == "S"):
 
@@ -291,57 +377,85 @@ def blackjack_main():
                         fancy_type(red_text("The dealer stands at " + bright_text(str(dealer_current_hand_int))))
                         print("\n")
                         fancy_type(red_text(bright_text("The dealer gets a Blackjack and wins! Too bad! So sad! Get good, kiddo!")))
-                        dealer_playing=1
-                        response=1
-                        game_running=0
+                        print("")
+                        fancy_type(red_text(bright_text("You lost your bet of " + green_text("$" + str(bet)))))
+                        print("\n")
+                        fancy_type(red_text(bright_text("Your new balance is " + green_text("$" + str(balance)))))
+                        print("")
+                        return balance
                     elif (21 > dealer_current_hand_int > current_hand_int):
                         fancy_type(red_text("The dealer stands at " + bright_text(str(dealer_current_hand_int))))
                         print("\n")
                         fancy_type(red_text(bright_text("The dealer wins! Too bad! So sad! Stay mad!")))
-                        dealer_playing=1
-                        response=1
-                        game_running=0
+                        print("")
+                        fancy_type(red_text(bright_text("You lost your bet of " + green_text("$" + str(bet)))))
+                        print("\n")
+                        fancy_type(red_text(bright_text("Your new balance is " + green_text("$" + str(balance)))))
+                        print("")
+                        return balance
                     elif ((dealer_ace > 0) & (21 > (dealer_current_hand_int + 10) > current_hand_int)):
                         fancy_type(red_text("The dealer stands at " + bright_text(str(dealer_current_hand_int + 10))))
                         print("\n")
                         fancy_type(red_text(bright_text("The dealer wins! Too bad! So sad! You suuuuck!")))
-                        dealer_playing=1
-                        response=1
-                        game_running=0
+                        print("")
+                        fancy_type(red_text(bright_text("You lost your bet of " + green_text("$" + str(bet)))))
+                        print("\n")
+                        fancy_type(red_text(bright_text("Your new balance is " + green_text("$" + str(balance)))))
+                        print("")
+                        return balance
                     elif ((dealer_ace > 0) & (21 == (dealer_current_hand_int + 10) > current_hand_int)):
                         print("")
                         fancy_type(red_text("The dealer stands at " + bright_text(str(dealer_current_hand_int + 10))))
                         print("\n")
                         fancy_type(red_text(bright_text("The dealer gets a Blackjack and wins! You're an embarrassment.")))
-                        dealer_playing=1
-                        response=1
-                        game_running=0
+                        print("")
+                        fancy_type(red_text(bright_text("You lost your bet of " + green_text("$" + str(bet)))))
+                        print("\n")
+                        fancy_type(red_text(bright_text("Your new balance is " + green_text("$" + str(balance)))))
+                        print("")
+                        return balance
                     elif (dealer_current_hand_int > 21):
                         fancy_type(magenta_text(bright_text("The dealer went over 21! Bust! You Win!")))
-                        dealer_playing=1
-                        response=1
-                        game_running=0
+                        print("")
+                        fancy_type(magenta_text(bright_text("With an innital bet of " + green_text("$" + str(bet)) + magenta_text(", you've doubled it!"))))
+                        print("\n")
+                        fancy_type(magenta_text(bright_text("Your new balance is " + green_text("$" + str(balance) + " + $" + str(bet*2) + " = $" + str(balance+(2*bet))))))
+                        print("")
+                        balance += (bet*2)
+                        return balance
                     elif (dealer_current_hand_int == current_hand_int):
                         fancy_type(red_text("The dealer stands at " + bright_text(str(dealer_current_hand_int))))
                         print("\n")
                         fancy_type(cyan_text(bright_text("Since you and the dealer have the same value, it's a draw. So, so very lame.")))
-                        dealer_playing=1
-                        response=1
-                        game_running=0
+                        print("")
+                        fancy_type(cyan_text(bright_text("You win back your bet of " + green_text("$" + str(bet)))))
+                        print("\n")
+                        fancy_type(cyan_text(bright_text("Your balance has returned to " + green_text("$" + str(balance)))))
+                        print("")
+                        balance += bet
+                        return balance
                     elif ((dealer_current_hand_int >= 17)):
                         fancy_type(red_text("The dealer stands at " + str(dealer_current_hand_int)))
                         print("\n")
                         fancy_type(magenta_text(bright_text("Congrats! You Win! Get REKT, dealer!")))
-                        dealer_playing=1
-                        response=1
-                        game_running=0
+                        print("")
+                        fancy_type(magenta_text(bright_text("With an innital bet of " + green_text("$" + str(bet)) + magenta_text(", you've doubled it!"))))
+                        print("\n")
+                        fancy_type(magenta_text(bright_text("Your new balance is " + green_text("$" + str(balance) + " + $" + str(bet*2) + " = $" + str(balance+(2*bet))))))
+                        print("")
+                        balance += (bet*2)
+                        return balance
                     elif ((dealer_ace > 0) & ((dealer_current_hand_int + 10) <= 21) & ((21 - (dealer_current_hand_int + 10))<=4)):
                         fancy_type(red_text("The dealer stands at " + bright_text(str((dealer_current_hand_int + 10)))))
                         print("\n")
                         fancy_type(magenta_text(bright_text("Congrats! You Win! Take that, dealer!")))
-                        dealer_playing=1
-                        response=1
-                        game_running=0
+                        print("")
+                        fancy_type(magenta_text(bright_text("With an innital bet of " + green_text("$" + str(bet)) + magenta_text(", you've doubled it!"))))
+                        print("\n")
+                        fancy_type(magenta_text(bright_text("Your new balance is " + green_text("$" + str(balance) + " + $" + str(bet*2) + " = $" + str(balance+(2*bet))))))
+                        print("")
+                        balance += (bet*2)
+                        return balance
                     else:
                         fancy_type(red_text("The dealer's cards are a value under 17 so they hit"))
 
@@ -369,20 +483,33 @@ def blackjack_main():
 
     fancy_type("")
 
+
 def main():
-    fancy_type("Would you like to play a game of Blackjack? ")
-    input("")
-    blackjack_main()
-    playing_again = 0
-    while playing_again == 0:
-        print("\n")
-        fancy_type("Would you like to play again? ")
+    balance = 50
+    alive = 1
+    bankrupt = 1
+    millionaire = 1
+    # alive = story.first_setup()
+    while (alive==1) and (bankrupt==1) and (millionaire == 1):
+        # story.opening_lines()
+        fancy_type("Would you like to play a game of Blackjack? ")
         decisions_decisions = input("")
-        fancy_type("") # Prints a line for spacing purposes
         decisions_decisions = decisions_decisions.upper()
-        if decisions_decisions == "NO":
-            playing_again = 1
-        else:
-            blackjack_main()
+        rounds = 0
+        print("")
+        fancy_type("Your current balance is " + green_text(bright_text("$" + str(balance))))
+        while rounds != 3:
+            taking_bets = choose_bet(balance)
+            bet = taking_bets[0]
+            balance = taking_bets[1]
+            if bet==0:
+                alive == 0
+                break
+            else:
+                balance = blackjack_main(bet, balance)
+                rounds += 1
+        
+        print("")
+        story.end_day_1()
 
 main()
