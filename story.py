@@ -114,10 +114,10 @@ def first_setup():
         if (decisions_decisions == "YES") or (decisions_decisions == "Y"):
             question = 0
             print("")
-            return 1
+            return True
         elif (decisions_decisions == "NO") or (decisions_decisions == "N"):
             type_slow("I mean alright...I guess...If you say so...")
-            return 0
+            sys.exit()
         else:
             type_slow("I'll ask again...")
             print("\n")
@@ -183,7 +183,7 @@ def end_day_1():
 def end_day_2():
     type_slow("After playing a few rounds of Blackjack, the dealer points to the door. ")
     type_slow("Without questing his word, and with your winnings in hand, you scurry to the door, eager to get some rest. ")
-    type_slow("Making it back to your car, ditched on the side of the road, but no longer engulfed in smoke, you lay down, and close your eyes. It's time to rest.")
+    type_slow("Making it back to your car, ditched on the side of the road, you lay down, and close your eyes. It's time to rest.")
 
 def make_random_event_list(time, rank):
     if (time == 0) and (rank == 0):
@@ -216,7 +216,11 @@ def make_random_event_list(time, rank):
     random.shuffle(event_list)
     return event_list
 
-def day_summary(balance, rank, day_count, quote_list):
+
+# Day Summary
+
+
+def day_summary(balance, previous_balance, rank, day_count, quote_list):
     cheer = list(range(6))
     random.shuffle(cheer)
     index = cheer[0]
@@ -238,9 +242,26 @@ def day_summary(balance, rank, day_count, quote_list):
     else:
         type_slow("You've survived " + yellow(bright(str(day_count) + " days")) + "!")
 
+    print("\n")
+
+    if day_count == 1:
+        type_slow("You started your journey with just " + green(bright("$" + str(previous_balance))) + ". ")
+    else:
+        type_slow("Yesterday, at this time, you had " + green(bright("$" + str(previous_balance))) + ". ")
+
     print("")
 
-    type_slow("You've accumulated " + green(bright("$" + str(balance))) + ". ")
+    if (balance - previous_balance) > 0:
+        type_slow("Since then, you've accumulated " + green(bright("$" + str(balance - previous_balance))) + ". ")
+    elif (balance - previous_balance) < 0:
+        type_slow("Since then, you've managed to lose " + red(bright("$" + str(previous_balance - balance))) + ". ")
+    else:
+        type_slow("Somehow, your net earnings today was 0. Goose egg. No money. Disappointing. ")
+
+    print("")
+
+    type_slow("That brings you to a grand total of " + green(bright("$" + str(balance))) + "! ")
+
     if rank == 0:
         type_slow("Let's not get too far ahead of ourselves though, you're still quite poor.")
     elif rank == 1:
@@ -254,7 +275,7 @@ def day_summary(balance, rank, day_count, quote_list):
     elif rank == 5:
         type_slow("So close to being a millionaire! Can you do it?")
 
-    print("")
+    print("\n")
 
     congrats = list(range(8))
     random.shuffle(congrats)
@@ -308,7 +329,7 @@ def day_summary(balance, rank, day_count, quote_list):
     if index == 4:
         type_slow("\"I honest to God thought Santa Claus was real for the longest time. Mom and Dad just never told me. My parents are fucking cruel.\"")
     if index == 5:
-        type_slow("\"Every tatoo is a temporary tattoo, because we are all slowly dying.\"")
+        type_slow("\"Every tattoo is a temporary tattoo, because we are all slowly dying.\"")
     if index == 6:
         type_slow("\"The reason you have to follow your dreams is because even your dreams are trying to get away from you.\"")
     if index == 7:
@@ -356,7 +377,11 @@ def day_summary(balance, rank, day_count, quote_list):
     if index == 28:
         type_slow("\"Bananas! Bananas! Bananas! Bananas! Bananas! Bananas! Bananas! Bananas!\"")
 
-def random_day_event_poor(event, balance, alive):
+
+# Daytime Events
+
+
+def random_day_event_poor(event, balance, is_alive, status_effects, items):
     """
     0 dollars to 1,000 dollars
     """
@@ -366,17 +391,20 @@ def random_day_event_poor(event, balance, alive):
         x = random.randint(0, 4)
         list = [5, 10, 20, 50, 100]
         type_slow("That's another " + green(bright("$" + str(list[x]))) + " dollars")
-        return (balance + list[x]), alive
+        return (balance + list[x]), is_alive
     if event == 1:
         type_slow("As you sit up from your slumber, you hear a vehicle approaching. As it draws near, you can see an old lady inside. ")
         type_slow("You open the door of your broken down car, and attempt to wave her down. ")
-        type_slow("The old lady's vehicle slows down, but as you get a closer look at her disgruntled face, you notice her lift her middle finger in your direction.")
+        type_slow("The old lady's vehicle slows down, but as you get a closer look at her disgruntled face, you notice her lift her middle finger in your direction. ")
         type_slow("She speeds off into the distance. What a bitch.")
+        return balance, is_alive
     if event == 2:
         type_slow("For some reason, you woke up with a strong motivation in your eye. ")
         type_slow("Today must be the day. ")
-        type_slow("")
-        type_slow("")
+        type_slow("To capitalize on this productivity, you hop out of the backseat, and pop open the hood of your fried car. ")
+        type_slow("As you poke your head in, trying to figure out the issue, you hear a hiss, and then notice a green wire, that appears to be rattling. ")
+        status_effects.append("Poisoned")
+        return balance, is_alive
 
 def random_day_event_cheap(event):
     """
@@ -403,6 +431,8 @@ def random_day_event_nearly_there():
     900,000 to 1,000,000
     """
 
+
+# Nighttime Events
 
 
 def random_night_event_poor():
@@ -439,3 +469,313 @@ def use_later():
     "You know why I like blackjack? Because it's a losing game, disguised as a fair chance."
     "That is, unless you try and count cards"
     "Can't do that here though, these boys are shuffled real good, heheh"
+
+def drunk_shuffle_cards():
+    deck_range=range(1,85)
+    deck=list(deck_range)
+    random.shuffle(deck)
+    return deck
+
+def drunk_check_suit(card):
+    if card <= 10:
+        return "of Hippos"
+    elif card <= 18:
+        return "of Large Green Monsters"
+    elif card <= 35:
+        return "of Squares"
+    elif card <= 50:
+        return "of Candycanes"
+    elif card <= 63:
+        return "of Starfishes"
+    elif card <= 75:
+        return "of Jupiters"
+    elif card <= 80:
+        return "of Unicorns"
+    elif card <= 84:
+        return "of Suns"
+    
+def drunk_card_int(card):
+    card_int = card%21
+    if card_int == 0:
+        card_int = 21
+    return(card_int)
+    
+def drunk_check_value(card):
+    card_value=card%21
+    if card_value == 1:
+        return "One"
+    elif card_value == 2:
+        return "Two"
+    elif card_value == 3:
+        return "Three"
+    elif card_value == 4:
+        return "4"
+    elif card_value == 5:
+        return "Five"
+    elif card_value == 6:
+        return "Six"
+    elif card_value == 7:
+        return "7"
+    elif card_value == 8:
+        return "Eight"
+    elif card_value == 9:
+        return "Nine"
+    elif card_value == 10:
+        return "Ten"
+    elif card_value == 11:
+        return "Jack"
+    elif card_value == 12:
+        return "Queen"
+    elif card_value == 13:
+        return "King"
+    elif card_value == 14:
+        return "Rook"
+    elif card_value == 15:
+        return "Spade"
+    elif card_value == 16:
+        return "Dragon"
+    elif card_value == 17:
+        return "Jester"
+    elif card_value == 18:
+        return "Balloon"
+    elif card_value == 19:
+        return "Baboon"
+    elif card_value == 20:
+        return "Tiger"
+    elif card_value == 0:
+        return "Blackjack"
+
+def drunk_print_hand_value(hand_value):
+    type("Your cards have a value of ", green(bright(str(hand_value))))
+    print("")
+
+def drunk_print_dealer_hand_value(dealer_hand_value):
+    type(red("The dealer's cards have a value of " + bright(str((dealer_hand_value)))))
+    print("\n")
+
+def drunk_check_value_21_or_over(value, goal):
+    if value == goal:
+        return "Blackjack"
+    elif value > goal:
+        return "Bust"
+    else:
+        return
+
+def drunk_blackjack(bet, balance):
+    game_running = 1
+    while game_running == 1:
+        goal = random.randint(85, 120)
+        type("You're trying to get to " + green(bright(str(goal))))
+        print("\n")
+        deck_of_cards = drunk_shuffle_cards()
+        card_one = deck_of_cards.pop(0)
+        card_one_value = drunk_check_value(card_one)
+        card_one_suit = drunk_check_suit(card_one)
+
+        if ((card_one_value[0] == "A") or (card_one_value[0] == "E")):
+            type("Your first card is an ", magenta(bright(card_one_value + " " + card_one_suit)))
+        else:
+            type("Your first card is a ", magenta(bright(card_one_value + " " + card_one_suit)))
+
+        print("")
+
+        dealer_card_one = deck_of_cards.pop(0)
+        dealer_card_one_value = drunk_check_value(dealer_card_one)
+        dealer_card_one_suit = drunk_check_suit(dealer_card_one)
+
+        if (dealer_card_one_value == "Eight"):
+            type(red("The dealer's first card is an " + bright(dealer_card_one_value + " " + dealer_card_one_suit)))
+        else:
+            type(red("The dealer's first card is a " + bright(dealer_card_one_value + " " + dealer_card_one_suit)))
+        
+        print("\n")
+
+        card_two = deck_of_cards.pop(0)
+        card_two_value = drunk_check_value(card_two)
+        card_two_suit = drunk_check_suit(card_two)
+        if ((card_two_value == "Ace") or (card_two_value == "Eight")):
+            type("Your second card is an " + magenta(bright(card_two_value + " " + card_two_suit)))
+        else:
+            type("Your second card is a " + magenta(bright(card_two_value + " " + card_two_suit)))
+            
+        print("")
+
+        dealer_card_two = deck_of_cards.pop(0)
+        dealer_card_two_value = drunk_check_value(dealer_card_two)
+        dealer_card_two_suit = drunk_check_suit(dealer_card_two)
+        
+        dealer_card_one_int = drunk_card_int(dealer_card_one)
+        dealer_card_two_int = drunk_card_int(dealer_card_two)
+        dealer_current_hand_int = dealer_card_one_int + dealer_card_two_int
+
+        type(red("The dealer's second card is face down"))
+            
+        print("\n")
+        type(red("As of now, the dealer's cards have a known value of " + bright(str(dealer_card_one_int))))
+
+        print("")
+
+        card_one_int = drunk_card_int(card_one)
+        card_two_int = drunk_card_int(card_two)
+        current_hand_int = card_one_int + card_two_int
+
+        drunk_print_hand_value(current_hand_int)
+
+        # Gameplay loop (Hitting repeatedly, then dealer hitting repeatedly)
+        dealer_story = 0
+        response = 0
+        while response == 0:
+            type("Would you like to hit or stand? ")
+            
+            decisions_decisions = input ('')
+            print("") # Prints a line for spacing purposes
+            decisions_decisions = decisions_decisions.upper()
+
+            if (decisions_decisions == "HIT") or (decisions_decisions == "H"):
+                additional_card = deck_of_cards.pop(0)
+                additional_card_value = drunk_check_value(additional_card)
+                additional_card_suit = drunk_check_suit(additional_card)
+                if (additional_card_value == "Eight"):
+                  type("Your next card is an " + magenta(bright( additional_card_value + " " + additional_card_suit)))
+                else:
+                  type("Your next card is a " + magenta(bright( additional_card_value + " " + additional_card_suit)))
+                  
+                print("")
+
+                additional_card_int = drunk_card_int(additional_card)
+                current_hand_int = current_hand_int + additional_card_int
+
+                drunk_print_hand_value(current_hand_int)
+
+                game_over = drunk_check_value_21_or_over(current_hand_int, goal)
+
+                if game_over == "Bust":
+                    loss = int(bet * (random.randint(0, 40)/12))
+                    print("")
+                    type(red(bright("You went over " + str(goal) + "! Bust! You Lose!")))
+                    print("")
+                    type(red(bright("You bet " + green("$" + str(bet)) + ", and ultimately lost " + green("$") + str(loss))))
+                    print("\n")
+                    type(red(bright("Your new balance is " + green("$" + str(balance) + red(" - $" + str(loss)) + green(" = $" + str((balance - loss)))))))
+                    print("")
+                    return balance-loss
+                elif game_over == "Blackjack":
+                    print("")
+                    type(yellow(bright("You reached the goal! Yippee! Hallelujah!")))
+                    print("")
+                    type(yellow(bright("With an innital bet of " + green("$" + str(bet)) + yellow(", you've tripled it!"))))
+                    print("\n")
+                    type(yellow(bright("Your new balance is " + green("$" + str(balance) + " + $" + str(bet*2) + " = $" + str(balance+(2*bet))))))
+                    print("")
+                    return balance + (2*bet)
+
+            elif (decisions_decisions == "STAND") or (decisions_decisions == "S"):
+
+                type("You decided to stand at a value of ", green(bright(str(current_hand_int))))
+                print("\n")
+
+                if ((dealer_card_two_value == "Eight")):
+                    type(red("The dealer's second card is an " + bright(dealer_card_two_value + " " + dealer_card_two_suit)))
+                else:
+                    type(red("The dealer's second card is a " + bright(dealer_card_two_value + " " + dealer_card_two_suit)))
+
+                print("")
+
+                drunk_print_dealer_hand_value(dealer_current_hand_int)
+
+                dealer_playing = 0
+                while dealer_playing == 0:
+                    if (goal == dealer_current_hand_int > current_hand_int):
+                        type(red("The dealer stands at " + bright(str(dealer_current_hand_int))))
+                        print("\n")
+                        type(red(bright("The dealer gets a Blackjack and wins! Too bad! So sad! Get good, kiddo!")))
+                        print("")
+                        type(red(bright("You lost your bet of " + green("$" + str(bet)))))
+                        print("\n")
+                        type(red(bright("Your new balance is " + green("$" + str(balance) + red(" - $" + str(bet)) + green(" = $" + str((balance - bet)))))))
+                        print("")
+                        return balance - bet
+                    elif (goal > dealer_current_hand_int > current_hand_int):
+                        type(red("The dealer stands at " + bright(str(dealer_current_hand_int))))
+                        print("\n")
+                        type(red(bright("The dealer wins! Too bad! So sad! Stay mad!")))
+                        print("")
+                        type(red(bright("You lost your bet of " + green("$" + str(bet)))))
+                        print("\n")
+                        type(red(bright("Your new balance is " + green("$" + str(balance) + red(" - $" + str(bet)) + green(" = $" + str((balance - bet)))))))
+                        print("")
+                        return balance - bet
+                    elif (dealer_current_hand_int > goal):
+                        type(magenta(bright("The dealer went over 21! Bust! You Win!")))
+                        print("")
+                        type(magenta(bright("With an innital bet of " + green("$" + str(bet)) + magenta(", you've doubled it!"))))
+                        print("\n")
+                        type(magenta(bright("Your new balance is " + green("$" + str(balance) + " + $" + str(bet) + " = $" + str(balance + bet)))))
+                        print("")
+                        return (balance - bet) + (bet*2)
+                    elif (dealer_current_hand_int == current_hand_int):
+                        type(red("The dealer stands at " + bright(str(dealer_current_hand_int))))
+                        print("\n")
+                        type(cyan(bright("Since you and the dealer have the same value, it's a draw. So, so very lame.")))
+                        print("")
+                        type(cyan(bright("You win back your bet of " + green("$" + str(bet)))))
+                        print("\n")
+                        type(cyan(bright("Your balance has returned to " + green("$" + str(balance)))))
+                        print("")
+                        return balance
+                    elif ((dealer_current_hand_int >= int(goal * 0.81))):
+                        type(red("The dealer stands at " + str(dealer_current_hand_int)))
+                        print("\n")
+                        type(magenta(bright("Congrats! You Win! Get REKT, dealer!")))
+                        print("")
+                        type(magenta(bright("With an innital bet of " + green("$" + str(bet)) + magenta(", you've doubled it!"))))
+                        print("\n")
+                        type(magenta(bright("Your new balance is " + green("$" + str(balance) + " + $" + str(bet) + " = $" + str(balance + bet)))))
+                        print("")
+                        return (balance + bet)
+                    else:
+                        type(red("The dealer's cards are a value under " + str(int(goal * 0.81)) + " so they hit"))
+
+                        print("")
+
+                        additional_dealer_card = deck_of_cards.pop(0)
+                        additional_dealer_card_value = drunk_check_value(additional_dealer_card)
+                        additional_dealer_card_suit = drunk_check_suit(additional_dealer_card)
+                        if (additional_dealer_card_value == "Eight"):
+                            type(red("The dealer's next card is an " + bright(additional_dealer_card_value + " " + additional_dealer_card_suit)))
+                        else:
+                            type(red("The dealer's next card is a " + bright(additional_dealer_card_value + " " + additional_dealer_card_suit)))
+
+                        print("")
+
+                        additional_dealer_card_int = drunk_card_int(additional_dealer_card)
+                        dealer_current_hand_int = dealer_current_hand_int + additional_dealer_card_int
+                        drunk_print_dealer_hand_value(dealer_current_hand_int)
+
+            else:
+                if dealer_story == 0:
+                    type(red("I didn't quite catch that."))
+                    print("\n")
+                    dealer_story += 1
+                elif dealer_story == 1:
+                    type(red("Do ya mind speaking up?"))
+                    print("\n")
+                    dealer_story += 1
+                elif dealer_story == 2:
+                    type(red("Speak louder."))
+                    print("\n")
+                    dealer_story += 1
+                elif dealer_story == 3:
+                    type(red("Can't ya hear me?"))
+                    print("\n")
+                    dealer_story += 1
+                elif dealer_story == 4:
+                    type(red("You gotta hit it or stand, kid."))
+                    print("\n")
+                    dealer_story += 1
+                elif dealer_story == 5:
+                    type(red("Pick an option. Now."))
+                    print("\n")
+
+    type("")
+

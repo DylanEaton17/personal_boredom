@@ -178,7 +178,6 @@ def choose_bet(balance, min_bet=1):
             type(red("The dealer looks at you confused. Perhaps he didn't hear you."))
             print("\n")
 
-
 def blackjack_main(bet, balance):
     game_running = 1
     while game_running == 1:
@@ -492,9 +491,6 @@ def blackjack_main(bet, balance):
 def check_balance(balance):
     return (balance <= 0) or (balance >=1000000)
 
-def check_alive(alive):
-    return alive == 0
-
 def find_rank(balance, rank):
     if (balance > 0) and (balance < 1000):
         if rank == 1:
@@ -529,16 +525,16 @@ def find_rank(balance, rank):
             type(green(bright("Your wallet feels larger than it was before.")))
         return 5
 
-def casino(balance, total_games=3):
-    rounds = 0
-    while (rounds < total_games) and (balance > 0) and (balance < 1000000):
+def casino(balance, number_of_rounds, status_effects):
+    rounds_played = 0
+    while (rounds_played < number_of_rounds) and (balance > 0) and (balance < 1000000):
             bet = choose_bet(balance)
             if bet=="dead":
-                return balance, 0
+                return balance, False
             else:
                 balance = blackjack_main(bet, balance)
-                rounds += 1
-    return balance, 1
+                rounds_played += 1
+    return balance, True, status_effects
 
 def main():
     day_poor = story.make_random_event_list(0, 0)
@@ -554,13 +550,16 @@ def main():
     night_doughman = story.make_random_event_list(1, 4)
     night_nearly_there = story.make_random_event_list(1, 5)
     quote_list = story.make_random_event_list(-1, -1)
+    status_effects = set()
+    items = []
+    number_of_rounds = 1
     rank = 0
     day_count = 0
     balance = 50
     previous_balance = balance
-    alive = 1
-    # alive = story.first_setup()
-    while (alive==1) and (balance >= 1) and (balance < 1000000):
+    is_alive = True
+    # is_alive = story.first_setup()
+    while (is_alive==True) and (balance >= 1) and (balance < 1000000):
         # story.opening_lines()
         type("Would you like to play a game of Blackjack? ")
         decisions_decisions = input("")
@@ -568,10 +567,12 @@ def main():
         print("")
         type("You have " + green(bright("$" + str(balance))))
         
-        balance, alive = casino(balance, 1) # plays inputted number of blackjack rounds
+        balance, is_alive, status_effects = casino(balance, number_of_rounds, status_effects) # plays inputted number of blackjack rounds
+
         if check_balance(balance): # checks if balance below 0 or over 1 million, then breaks loop
             break
-        if check_alive(alive):
+
+        if is_alive == False: # Check if alive is False
             break
 
         print("")
@@ -588,7 +589,9 @@ def main():
 
         if len(quote_list) == 0:
             quote_list = story.make_random_event_list(-1, -1)
-        story.day_summary(balance, rank, day_count, quote_list)
+        story.day_summary(balance, previous_balance, rank, day_count, quote_list)
+
+        previous_balance = balance
 
         print("\n")
 
@@ -596,38 +599,36 @@ def main():
             if len(day_poor) == 0:
                 day_poor = story.make_random_event_list(0, rank)
             event = day_poor.pop()
-            balance, alive = story.random_day_event_poor(event, balance, alive)
+            balance, is_alive = story.random_day_event_poor(event, balance, is_alive, status_effects, items)
         elif rank == 1:
             if len(day_cheap) == 0:
                 day_cheap = story.make_random_event_list(0, rank)
             event = day_cheap.pop()
-            balance, alive = story.random_day_event_cheap(event, balance, alive)
+            balance, is_alive = story.random_day_event_cheap(event, balance, is_alive, status_effects, items)
         if rank == 2:
             if len(day_modest) == 0:
                 day_modest = story.make_random_event_list(0, rank)
             event = day_modest.pop()
-            balance, alive = story.random_day_event_modest(event, balance, alive)
+            balance, is_alive = story.random_day_event_modest(event, balance, is_alive, status_effects, items)
         elif rank == 3:
             if len(day_rich) == 0:
                 day_rich = story.make_random_event_list(0, rank)
             event = day_rich.pop()
-            balance, alive = story.random_day_event_rich(event, balance, alive)
+            balance, is_alive = story.random_day_event_rich(event, balance, is_alive, status_effects, items)
         elif rank == 4:
             if len(day_doughman) == 0:
                 day_doughman = story.make_random_event_list(0, rank)
             event = day_doughman.pop()
-            balance, alive = story.random_day_event_doughman(event, balance, alive)
+            balance, is_alive = story.random_day_event_doughman(event, balance, is_alive, status_effects, items)
         elif rank == 5:
             if len(day_nearly_there) == 0:
                 day_nearly_there = story.make_random_event_list(0, rank)
             event = day_nearly_there.pop()
-            balance, alive = story.random_day_event_nearly_there(event, balance, alive)
+            balance, is_alive = story.random_day_event_nearly_there(event, balance, is_alive, status_effects, items)
 
         print ("\n")
 
-        if check_balance(balance):
-            break
-        if check_alive(alive):
+        if is_alive == False: # Check if alive is false
             break
 
         print("")
@@ -640,37 +641,41 @@ def main():
             if len(night_poor) == 0:
                 night_poor = story.make_random_event_list(0, rank)
             event = night_poor.pop()
-            balance, alive = story.random_night_event_poor(event, balance, alive)
+            balance, is_alive = story.random_night_event_poor(event, balance, is_alive, status_effects, items)
         elif rank == 1:
             if len(night_cheap) == 0:
                 night_cheap = story.make_random_event_list(0, rank)
             event = night_cheap.pop()
-            balance, alive = story.random_night_event_cheap(event, balance, alive)
+            balance, is_alive = story.random_night_event_cheap(event, balance, is_alive, status_effects, items)
         if rank == 2:
             if len(night_modest) == 0:
                 night_modest = story.make_random_event_list(0, rank)
             event = night_modest.pop()
-            balance, alive = story.random_night_event_modest(event, balance, alive)
+            balance, is_alive = story.random_night_event_modest(event, balance, is_alive, status_effects, items)
         elif rank == 3:
             if len(night_rich) == 0:
                 night_rich = story.make_random_event_list(0, rank)
             event = night_rich.pop()
-            balance, alive = story.random_night_event_rich(event, balance, alive)
+            balance, is_alive = story.random_night_event_rich(event, balance, is_alive, status_effects, items)
         elif rank == 4:
             if len(night_doughman) == 0:
                 night_doughman = story.make_random_event_list(0, rank)
             event = night_doughman.pop()
-            balance, alive = story.random_night_event_doughman(event, balance, alive)
+            balance, is_alive = story.random_night_event_doughman(event, balance, is_alive, status_effects, items)
         elif rank == 5:
             if len(night_nearly_there) == 0:
                 night_nearly_there = story.make_random_event_list(0, rank)
             event = night_nearly_there.pop()
-            balance, alive = story.random_night_event_nearly_there(event, balance, alive)
+            balance, is_alive = story.random_night_event_nearly_there(event, balance, is_alive, status_effects, items)
+
+        print("")
+        type_slow("It's about time that you return to the casino. You wouldn't want to keep the dealer waiting.")
+        print("")
 
 
     print("") #print before game over messages
 
-    if alive == 0:
+    if is_alive == False:
         type_slow("You have died!")
         print("")
         type_slow("You met your fate with a final balance of " + green(bright("$" + str(balance))))
